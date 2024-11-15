@@ -1,0 +1,45 @@
+WITH ProductMonthlySales AS (
+    SELECT 
+        s.prod,  -- Product column
+        s.month,  -- Month column
+        SUM(s.quant) AS total_sales  -- Total sales for each product per month
+    FROM sales s  -- Sales table
+    GROUP BY s.prod, s.month  -- Group by product and month
+)
+SELECT 
+    prod,
+    -- Most popular month (highest sales)
+    MAX(CASE WHEN rank_desc = 1 THEN month END) AS most_popular_month,
+    MAX(CASE WHEN rank_desc = 1 THEN total_sales END) AS most_popular_sales,
+    -- Least popular month (lowest sales)
+    MAX(CASE WHEN rank_asc = 1 THEN month END) AS least_popular_month,
+    MAX(CASE WHEN rank_asc = 1 THEN total_sales END) AS least_popular_sales
+FROM (
+    SELECT 
+        prod,
+        month,
+        total_sales,
+        -- Rank months by total sales (descending) to find the most popular month
+        RANK() OVER (PARTITION BY prod ORDER BY total_sales DESC) AS rank_desc,
+        -- Rank months by total sales (ascending) to find the least popular month
+        RANK() OVER (PARTITION BY prod ORDER BY total_sales ASC) AS rank_asc
+    FROM ProductMonthlySales
+) AS RankedProducts
+GROUP BY prod  -- Group by product to get one row per product
+ORDER BY prod;  -- Optional: Order by product
+  
+
+prod  | most_popular_month | most_popular_sales | least_popular_month | least_popular_sales 
+--------+--------------------+--------------------+---------------------+---------------------
+ Apple  |                  8 |             107668 |                   5 |               67112
+ Butter |                  8 |             102418 |                   9 |               73164
+ Cherry |                  3 |              99234 |                   5 |               69510
+ Dates  |                  3 |             101158 |                   1 |               73678
+ Eggs   |                  3 |             118518 |                   2 |               67830
+ Fish   |                 10 |              98988 |                   7 |               66350
+ Grapes |                  9 |              89812 |                   6 |               58578
+ Ham    |                  8 |              99014 |                  12 |               64566
+ Ice    |                  7 |              91976 |                   6 |               61466
+ Jelly  |                  5 |             107230 |                   3 |               58586
+(10 rows)
+

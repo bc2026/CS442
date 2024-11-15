@@ -1,0 +1,40 @@
+WITH MonthlySales AS (
+    SELECT 
+        s.year,  -- Extract year from sale date
+        s.month,  -- Month column
+        SUM(s.quant) AS total_sales  -- Sum of quantities sold for the month
+    FROM sales s  -- Sales table
+    GROUP BY year, s.month  -- Group by year and month
+)
+SELECT 
+    year,
+    -- Busiest month (highest total sales)
+    MAX(CASE WHEN rank_desc = 1 THEN month END) AS busiest_month,
+    MAX(CASE WHEN rank_desc = 1 THEN total_sales END) AS busiest_sales,
+    -- Slowest month (lowest total sales)
+    MAX(CASE WHEN rank_asc = 1 THEN month END) AS slowest_month,
+    MAX(CASE WHEN rank_asc = 1 THEN total_sales END) AS slowest_sales
+FROM (
+    SELECT 
+        year,
+        month,
+        total_sales,
+        -- Rank months by total sales in descending order to find the busiest month
+        RANK() OVER (PARTITION BY year ORDER BY total_sales DESC) AS rank_desc,
+        -- Rank months by total sales in ascending order to find the slowest month
+        RANK() OVER (PARTITION BY year ORDER BY total_sales ASC) AS rank_asc
+    FROM MonthlySales
+) AS RankedMonths
+GROUP BY year
+ORDER BY year DESC;  -- Optional: Order by year in descending order
+
+
+ year | busiest_month | busiest_sales | slowest_month | slowest_sales 
+------+---------------+---------------+---------------+---------------
+ 2020 |            11 |        200840 |            12 |        152640
+ 2019 |            11 |        189236 |            12 |        148622
+ 2018 |             8 |        194286 |             7 |        137808
+ 2017 |             8 |        182396 |             6 |        144810
+ 2016 |             3 |        189196 |            11 |        145650
+(5 rows)
+

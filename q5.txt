@@ -1,0 +1,47 @@
+WITH QuarterlySales AS (
+    SELECT 
+        s.prod,  -- Product column
+        s.month,  -- Extract month from sale date
+        s.date,  -- Sale date column
+        s.quant  -- Sales quantity column
+    FROM sales s
+),
+MaxQuarterSales AS (
+    SELECT 
+        prod,
+        -- Maximum sales quantity and corresponding date for Q1 (January, February, March)
+        MAX(CASE WHEN month IN (1, 2, 3) THEN quant END) AS max_q1_sales,
+        MAX(CASE WHEN month IN (1, 2, 3) THEN date END) AS max_q1_date,
+
+        -- Maximum sales quantity and corresponding date for Q2 (April, May, June)
+        MAX(CASE WHEN month IN (4, 5, 6) THEN quant END) AS max_q2_sales,
+        MAX(CASE WHEN month IN (4, 5, 6) THEN date END) AS max_q2_date,
+
+        -- Maximum sales quantity and corresponding date for Q3 (July, August, September)
+        MAX(CASE WHEN month IN (7, 8, 9) THEN quant END) AS max_q3_sales,
+        MAX(CASE WHEN month IN (7, 8, 9) THEN date END) AS max_q3_date,
+
+        -- Maximum sales quantity and corresponding date for Q4 (October, November, December)
+        MAX(CASE WHEN month IN (10, 11, 12) THEN quant END) AS max_q4_sales,
+        MAX(CASE WHEN month IN (10, 11, 12) THEN date END) AS max_q4_date
+    FROM QuarterlySales
+    GROUP BY prod
+)
+SELECT *
+FROM MaxQuarterSales
+ORDER BY prod;
+
+  prod  | max_q1_sales | max_q1_date | max_q2_sales | max_q2_date | max_q3_sales | max_q3_date | max_q4_sales | max_q4_date 
+--------+--------------+-------------+--------------+-------------+--------------+-------------+--------------+-------------
+ Apple  |         1000 | 2020-03-29  |         1000 | 2020-06-28  |          999 | 2020-09-30  |          992 | 2020-12-31
+ Butter |          993 | 2020-03-28  |          999 | 2020-06-25  |          996 | 2020-09-28  |          993 | 2020-12-29
+ Cherry |         1000 | 2020-03-28  |          999 | 2020-06-29  |         1000 | 2020-09-27  |          997 | 2020-12-25
+ Dates  |         1000 | 2020-03-26  |          998 | 2020-06-26  |          987 | 2020-09-30  |          997 | 2020-12-31
+ Eggs   |          995 | 2020-03-29  |          998 | 2020-06-28  |          999 | 2020-09-30  |         1000 | 2020-12-31
+ Fish   |         1000 | 2020-03-29  |         1000 | 2020-06-29  |          999 | 2020-09-30  |          989 | 2020-12-30
+ Grapes |          997 | 2020-03-28  |          998 | 2020-06-30  |          998 | 2020-09-30  |         1000 | 2020-12-28
+ Ham    |          999 | 2020-03-28  |          997 | 2020-06-30  |          994 | 2020-09-29  |          996 | 2020-12-29
+ Ice    |          985 | 2020-03-30  |          993 | 2020-06-24  |          997 | 2020-09-30  |          998 | 2020-12-29
+ Jelly  |         1000 | 2020-03-30  |          999 | 2020-06-30  |          997 | 2020-09-30  |          996 | 2020-12-29
+(10 rows)
+
